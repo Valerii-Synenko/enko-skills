@@ -1,0 +1,74 @@
+{
+  "skill_name": "test-smells",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review the tests in evals/test-smells/files/python/test_discount.py (the code under test is evals/test-smells/files/python/discount.py). Are these good tests?",
+      "expected_output": "A test smell report with High findings first, covering the planted smells, without flagging the two legitimate tests at the end of the file.",
+      "files": ["evals/test-smells/files/python/discount.py", "evals/test-smells/files/python/test_discount.py"],
+      "expectations": [
+        "Reads discount.py, not only the test file",
+        "Flags test_apply_discount as Unknown Test (no assertion)",
+        "Flags test_loyalty_rates as Conditional Test Logic and notes that years 0-1 are never asserted; suggests parametrize",
+        "Flags test_negative_amount as Exception Handling (passes when nothing is raised); suggests pytest.raises",
+        "Flags test_rate_matches_tier as Tautological Test (expected value derived from TIERS with the same logic)",
+        "Flags test_refresher_loads_rates as Sleepy Test and suggests refresher.join() instead of time.sleep",
+        "Flags the AUDIT tests as Order-Dependent Tests because of the module-level AuditLog",
+        "Flags test_birthday_bonus for Nondeterministic Input (date.today()) and suggests passing today=",
+        "Flags the print in test_birthday_bonus as Redundant Print",
+        "Flags test_large_amount_rounding as Ignored Test (skip without reason)",
+        "Does not flag test_discount_never_exceeds_amount as Conditional Test Logic (comprehensions only build data)",
+        "Does not flag test_long_time_customer_pays_85_percent",
+        "Uses the report format from SKILL.md with a summary line and severity sections, High before Medium and Low"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Review evals/test-smells/files/python/test_discount_clean.py for test smells. The code under test is evals/test-smells/files/python/discount.py.",
+      "expected_output": "A short report saying the tests are in good shape, with no High findings and no invented problems.",
+      "files": ["evals/test-smells/files/python/discount.py", "evals/test-smells/files/python/test_discount_clean.py"],
+      "expectations": [
+        "Reports no High-severity findings",
+        "Does not flag the strict xfail with a reason and issue link as Ignored Test",
+        "Does not flag fetch.assert_called_once() as Over-Mocking (fetch is the external boundary)",
+        "Does not flag test_audit_log_keeps_entries_in_order as Assertion Roulette or Eager Test",
+        "Does not flag the list comprehensions in test_discount_never_exceeds_amount as Conditional Test Logic",
+        "States plainly that the tests look healthy rather than padding the report with speculative findings"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Our Playwright suite in evals/test-smells/files/e2e/checkout.spec.ts is flaky in CI. Can you review it?",
+      "expected_output": "A review that identifies the tests as E2E, applies the E2E guidance from references/test-levels.md, and leaves the guest scenario alone.",
+      "files": ["evals/test-smells/files/e2e/checkout.spec.ts"],
+      "expectations": [
+        "Identifies the file as E2E/UI tests",
+        "Flags page.waitForTimeout as Sleepy Test and suggests web-first assertions or condition waits",
+        "Flags the nth-child CSS path and the generated .css-1x9fz2k class as brittle selectors; suggests roles, labels or test IDs",
+        "Flags the duplicated UI login as setup through the UI; suggests seeding via API or storageState",
+        "Flags 'checkout places the order' as order-dependent: it relies on the cart filled by the previous test",
+        "Flags the shared qa@example.com account as Resource Optimism or Mystery Guest",
+        "Flags the loop in 'loyalty discounts' as Conditional Test Logic and suggests the pricing cases belong in unit tests, framed as a suggestion",
+        "Notes that 'user can log in' asserts via isVisible with a non-retrying expect",
+        "Does not flag 'guest can buy a mug end to end' as Eager Test (it is a named user journey)"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Write pytest tests for evals/test-smells/files/python/discount.py.",
+      "expected_output": "A smell-free pytest file covering loyalty tiers, validation errors, the birthday bonus, AuditLog and RateRefresher, with no smell report.",
+      "files": ["evals/test-smells/files/python/discount.py"],
+      "expectations": [
+        "Uses @pytest.mark.parametrize for the loyalty tiers instead of loops or copy-pasted tests",
+        "Uses pytest.raises for both ValueError paths",
+        "Passes an explicit today= date instead of relying on date.today()",
+        "Waits for RateRefresher with join() rather than time.sleep",
+        "Uses hard-coded expected values, not values recomputed from TIERS",
+        "Creates a fresh AuditLog per test (no module-level mutable state)",
+        "Contains no print statements and no if/for in test bodies",
+        "Does not produce a smell report, since the user did not ask for one",
+        "The written tests pass when run with pytest"
+      ]
+    }
+  ]
+}

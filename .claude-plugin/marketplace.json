@@ -1,0 +1,14 @@
+{
+  "name": "enko-skills",
+  "description": "Agent Skills by Valerii Synenko",
+  "owner": {
+    "name": "Valerii Synenko"
+  },
+  "plugins": [
+    {
+      "name": "enko-skills",
+      "source": "./",
+      "description": "A collection of Agent Skills by Valerii Synenko"
+    }
+  ]
+}

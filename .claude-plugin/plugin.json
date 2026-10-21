@@ -1,0 +1,10 @@
+{
+  "name": "enko-skills",
+  "version": "0.1.0",
+  "description": "A collection of Agent Skills by Valerii Synenko",
+  "author": {
+    "name": "Valerii Synenko"
+  },
+  "repository": "https://github.com/Valerii-Synenko/enko-skills",
+  "license": "MIT"
+}
