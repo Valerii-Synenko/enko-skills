@@ -6,7 +6,7 @@ A collection of [Agent Skills](https://agentskills.io) — portable `SKILL.md` i
 
 | Skill | Description |
 |-------|-------------|
-| [test-smells](skills/test-smells/) | Detects and avoids test smells (Assertion Roulette, Eager Test, Mystery Guest, Sleepy Test, over-mocking, flaky order-dependent tests, …) when reviewing or writing tests in any language. |
+| [test-smells](skills/test-smells/) | Finds and avoids test smells (Sleepy Test, Mystery Guest, Assertion Roulette, over-mocking, order-dependent tests, …) when reviewing or writing tests in any language. Written from a test-automation perspective: knows what changes between unit, integration, API and E2E tests (brittle selectors, UI-driven setup, status-only API checks) and how to pick the right test double. |
 
 ## Installation
 

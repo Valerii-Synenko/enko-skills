@@ -1,6 +1,6 @@
 ---
 name: test-smells
-description: Detect and avoid test smells (anti-patterns in test code) such as Assertion Roulette, Eager Test, Mystery Guest, Sleepy Test, Conditional Test Logic, over-mocking and order-dependent tests. Use when reviewing, auditing or refactoring existing tests ("review my tests", "why are these tests flaky", "are these good tests", "clean up this test file"), and whenever writing new unit or integration tests in any language or framework (pytest, unittest, JUnit, Jest, Vitest, Go, Rust, etc.) so the new tests come out smell-free.
+description: Detect and avoid test smells (anti-patterns in test code) such as Assertion Roulette, Eager Test, Mystery Guest, Sleepy Test, Conditional Test Logic, over-mocking and order-dependent tests. Use when reviewing, auditing or refactoring existing tests ("review my tests", "why are these tests flaky", "are these good tests", "clean up this test file"), and whenever writing new tests in any language or framework (pytest, unittest, JUnit, Jest, Vitest, Go, Rust, Playwright, Cypress, etc.) so the new tests come out smell-free. Covers unit, integration, API and E2E/UI tests, including level-specific problems such as brittle selectors, setup through the UI and status-only API assertions.
 ---
 
 # Test Smells
@@ -69,18 +69,50 @@ Severity: **High** = the test can pass while the code is broken, or fails random
 2. **Read the code under test too**, at least the parts being exercised. Many smells (Tautological Test, Implementation-Coupled Test, Over-Mocking) cannot be judged from the test alone.
 3. **Scan by severity.** Look for High-severity smells first; they matter most.
 4. **Check exceptions before reporting.** Each catalog entry lists cases where the pattern is legitimate (e.g. multiple assertions on one result object are fine; `sleep` in a test of a timeout may be intentional). Do not report those.
-5. **Report** in the format below. Group repeated occurrences of the same smell instead of listing each one.
-6. **Fix only if asked.** If the user asked to fix, apply fixes one smell at a time, keep behavior coverage the same or better, and run the tests afterward.
+5. **Self-check** every finding against the checklist below and drop the ones that fail.
+6. **Report** in the format below. Group repeated occurrences of the same smell instead of listing each one.
+7. **Fix only if asked.** If the user asked to fix, apply fixes one smell at a time, keep behavior coverage the same or better, and run the tests afterward.
+
+### Self-check before reporting
+
+- Each finding points to a specific test and line, and the evidence is in the code you read, not inferred from a name.
+- You checked the catalog's "Not a smell" cases and the test level for each finding.
+- One problem is reported under one smell name, not repeated under two.
+- Claims match what you did. Do not say a test "is flaky" or "fails" unless you ran it; say what can make it fail ("fails if run after `test_x`", "fails when CI is slower than 500 ms").
+- Each fix is idiomatic for the framework in use (see [references/frameworks.md](references/frameworks.md)).
+- If nothing survives, the report says the tests look healthy.
 
 ### Report format
+
+Match the report to the size of the scope.
+
+**Small scope (one to three test files):** a verdict and one table, sorted High → Low.
 
 ```
 ## Test smell review: <scope>
 
-**Summary:** <N> findings (<h> high, <m> medium, <l> low). <one sentence on overall test health>
+**Verdict:** <one sentence: overall health and the most important problem>
+
+| Severity | Smell | Where | Evidence | Fix |
+|---|---|---|---|---|
+| High | Sleepy Test | `test_refresh.py:42` `test_loads_rates` | `time.sleep(0.5)` before the assertion | `refresher.join(timeout=5)` |
+
+**Looks good:** <optional: one or two things to keep>
+```
+
+**Larger scope (a suite, a directory, many files):** counts, a short priority list, then details grouped by severity.
+
+```
+## Test smell review: <scope>
+
+**Summary:** <N> findings (<h> high, <m> medium, <l> low) across <F> files. <one sentence on overall test health>
+
+**Fix first:**
+1. <the smell or pattern with the biggest risk, and where it occurs>
+2. ...
 
 ### High
-- **<Smell>** — `path/to/test_file.py:42` `test_name`
+- **<Smell>** — `path/to/test_file.py:42` `test_name` (+ <k> similar in <files>)
   <What is wrong here, concretely, in one or two sentences.>
   Fix: <specific change, with a short code snippet if useful>
 

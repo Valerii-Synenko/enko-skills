@@ -19,7 +19,8 @@
         "Flags test_large_amount_rounding as Ignored Test (skip without reason)",
         "Does not flag test_discount_never_exceeds_amount as Conditional Test Logic (comprehensions only build data)",
         "Does not flag test_long_time_customer_pays_85_percent",
-        "Uses the report format from SKILL.md with a summary line and severity sections, High before Medium and Low"
+        "Uses the small-scope report format from SKILL.md: a one-sentence verdict and a single table sorted High to Low",
+        "Does not claim tests are flaky or failing without having run them; describes the condition under which they fail"
       ]
     },
     {
