@@ -80,3 +80,36 @@ How common smells show up in popular frameworks, and the idiomatic fix. Use this
 | Lazy Test | copy-pasted tests | `rstest` `#[case]`, or a macro generating tests |
 | Order-Dependent | `static` + `Mutex`/`OnceLock` with mutable state; env var mutation (tests run in parallel by default) | per-test state; `serial_test` only as a last resort |
 | Redundant Print | `println!`/`dbg!` | remove (output is captured anyway) |
+
+## E2E — Playwright
+
+| Smell | What to look for | Idiomatic fix |
+|---|---|---|
+| Sleepy Test | `page.waitForTimeout(...)` | web-first assertions (`await expect(locator).toBeVisible()`); `page.waitForResponse` for a specific request |
+| Weak Assertion (no retry) | `expect(await locator.isVisible()).toBe(true)`, `expect(await locator.textContent()).toBe(...)` | `await expect(locator).toBeVisible()` / `toHaveText(...)`, which retry until timeout |
+| Brittle selectors | CSS paths, `nth-child`, generated class names, `page.$(...)` | `getByRole`, `getByLabel`, `getByTestId` |
+| Setup through the UI | login form filled in every test | `storageState` from a setup project; seed data with the `request` fixture |
+| Order-Dependent | tests using data from earlier tests; `test.describe.serial` added to make them pass | per-test data via fixtures; `serial` only for a real multi-step workflow |
+| Ignored Test | `test.skip()` / `test.fixme()` without reason; `test.only` left in | `test.fixme(condition, "reason, #123")`; `forbidOnly: !!process.env.CI` |
+| Mystery Guest | hard-coded base URLs, shared accounts | `baseURL` in config; per-worker accounts via worker-scoped fixtures |
+
+## E2E — Cypress
+
+| Smell | What to look for | Idiomatic fix |
+|---|---|---|
+| Sleepy Test | `cy.wait(3000)` | `cy.intercept(...).as("req")` + `cy.wait("@req")`; retrying `.should(...)` |
+| Weak Assertion (no retry) | `.then(($el) => expect($el.text()).to.eq(...))` on async content | `.should("have.text", ...)` |
+| Brittle selectors | `cy.get(".btn-primary:nth-child(2)")` | `data-cy` / `data-testid` attributes; `cy.contains` for user-facing text |
+| Setup through the UI | UI login in `beforeEach` | `cy.session()` with `cy.request()` login |
+| Conditional Test Logic | `.then(($body) => { if ($body.find(...).length) ... })` for "sometimes present" elements | control the state so the element is deterministic; one test per state |
+| Order-Dependent | `testIsolation: false`; tests continuing from the previous `it` | keep `testIsolation: true`; seed per test via `cy.task` or API calls |
+
+## E2E — Selenium WebDriver
+
+| Smell | What to look for | Idiomatic fix |
+|---|---|---|
+| Sleepy Test | `Thread.sleep` / `time.sleep`; a large global `implicitlyWait` | `WebDriverWait(...).until(...)` with expected conditions; do not mix implicit and explicit waits |
+| Brittle selectors | absolute XPath (`/html/body/div[2]/...`), index-based locators | `By.id`, test IDs, accessible names; keep locators in Page Objects |
+| Order-Dependent | one driver session shared across tests with leftover cookies or storage | fresh driver per test, or clear cookies and storage in setup |
+| Obscure Test | long `findElement` chains in the test body | Page Objects with methods named after user actions |
+| Mystery Guest | hard-coded URLs and browser binary paths | suite configuration; Selenium Manager or a grid |

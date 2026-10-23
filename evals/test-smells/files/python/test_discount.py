@@ -70,3 +70,7 @@ def test_discount_never_exceeds_amount():
 
 def test_long_time_customer_pays_85_percent():
     assert apply_discount(200, Customer("gus", 10), today=date(2024, 3, 15)) == 170.0
+
+
+def test_discount_for_new_customer():
+    assert apply_discount(80, Customer("hal", 0), today=date(2024, 3, 15)) is not None

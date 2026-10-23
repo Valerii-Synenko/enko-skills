@@ -4,7 +4,7 @@ Each entry: why it hurts, how to spot it, how to fix it, and when the pattern is
 
 ## Contents
 
-- Tests that can lie: [Empty Test](#empty-test) · [Unknown Test](#unknown-test) · [Redundant Assertion](#redundant-assertion) · [Conditional Test Logic](#conditional-test-logic) · [Exception Handling](#exception-handling) · [Ignored Test](#ignored-test) · [Tautological Test](#tautological-test)
+- Tests that can lie: [Empty Test](#empty-test) · [Unknown Test](#unknown-test) · [Weak Assertion](#weak-assertion) · [Redundant Assertion](#redundant-assertion) · [Conditional Test Logic](#conditional-test-logic) · [Exception Handling](#exception-handling) · [Ignored Test](#ignored-test) · [Tautological Test](#tautological-test)
 - Tests that fail randomly: [Sleepy Test](#sleepy-test) · [Mystery Guest](#mystery-guest) · [Resource Optimism](#resource-optimism) · [Order-Dependent Tests](#order-dependent-tests) · [Nondeterministic Input](#nondeterministic-input)
 - Hard to understand or maintain: [Assertion Roulette](#assertion-roulette) · [Eager Test](#eager-test) · [General Fixture](#general-fixture) · [Over-Mocking](#over-mocking) · [Implementation-Coupled Test](#implementation-coupled-test) · [Sensitive Equality](#sensitive-equality) · [Magic Number Test](#magic-number-test) · [Obscure Test](#obscure-test)
 - Noise: [Redundant Print](#redundant-print) · [Duplicate Assert](#duplicate-assert) · [Constructor Initialization](#constructor-initialization) · [Lazy Test](#lazy-test) · [Placeholder Test](#placeholder-test)
@@ -41,6 +41,31 @@ def test_parse_config_reads_port():
 ```
 
 **Not a smell:** Smoke tests whose stated purpose is "does not raise", when that is made explicit (name like `test_..._does_not_raise`, or a comment). Assertions hidden in a well-named helper (`assert_valid_response(resp)`) also count as assertions.
+
+### Weak Assertion
+
+**Why:** The test asserts something, but so little that almost any wrong result passes. It looks covered and catches nothing that matters.
+
+**Signals:** `assert result`, `assert x is not None`, `assertNotNull(x)`, `expect(x).toBeTruthy()` / `toBeDefined()`, `len(items) > 0`, `assertTrue(list.size() > 0)`, type-only checks (`isinstance`), wildcard matchers (`ANY`, `expect.anything()`, `any()`) on values that matter.
+
+```javascript
+// Smell
+test("creates an order", async () => {
+  const order = await createOrder(cart);
+  expect(order).toBeDefined();
+  expect(order.items.length).toBeGreaterThan(0);
+});
+
+// Fix
+test("creates an order with the cart items and total", async () => {
+  const order = await createOrder(cart);
+  expect(order).toMatchObject({ items: [{ sku: "MUG-42", qty: 2 }], total: 40 });
+});
+```
+
+**Fix:** Assert the specific expected value. If part of the value is unstable, assert the stable parts precisely and match only the volatile fields loosely.
+
+**Not a smell:** A not-null check used as a guard before precise assertions in the same test; smoke tests explicitly named as such; wildcards on genuinely volatile fields (generated IDs, timestamps).
 
 ### Redundant Assertion
 

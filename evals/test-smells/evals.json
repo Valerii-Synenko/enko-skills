@@ -5,7 +5,10 @@
       "id": 1,
       "prompt": "Review the tests in evals/test-smells/files/python/test_discount.py (the code under test is evals/test-smells/files/python/discount.py). Are these good tests?",
       "expected_output": "A test smell report with High findings first, covering the planted smells, without flagging the two legitimate tests at the end of the file.",
-      "files": ["evals/test-smells/files/python/discount.py", "evals/test-smells/files/python/test_discount.py"],
+      "files": [
+        "evals/test-smells/files/python/discount.py",
+        "evals/test-smells/files/python/test_discount.py"
+      ],
       "expectations": [
         "Reads discount.py, not only the test file",
         "Flags test_apply_discount as Unknown Test (no assertion)",
@@ -17,6 +20,7 @@
         "Flags test_birthday_bonus for Nondeterministic Input (date.today()) and suggests passing today=",
         "Flags the print in test_birthday_bonus as Redundant Print",
         "Flags test_large_amount_rounding as Ignored Test (skip without reason)",
+        "Flags test_discount_for_new_customer as Weak Assertion (only checks `is not None`); suggests asserting 80.0",
         "Does not flag test_discount_never_exceeds_amount as Conditional Test Logic (comprehensions only build data)",
         "Does not flag test_long_time_customer_pays_85_percent",
         "Uses the small-scope report format from SKILL.md: a one-sentence verdict and a single table sorted High to Low",
@@ -27,7 +31,10 @@
       "id": 2,
       "prompt": "Review evals/test-smells/files/python/test_discount_clean.py for test smells. The code under test is evals/test-smells/files/python/discount.py.",
       "expected_output": "A short report saying the tests are in good shape, with no High findings and no invented problems.",
-      "files": ["evals/test-smells/files/python/discount.py", "evals/test-smells/files/python/test_discount_clean.py"],
+      "files": [
+        "evals/test-smells/files/python/discount.py",
+        "evals/test-smells/files/python/test_discount_clean.py"
+      ],
       "expectations": [
         "Reports no High-severity findings",
         "Does not flag the strict xfail with a reason and issue link as Ignored Test",
@@ -41,7 +48,9 @@
       "id": 3,
       "prompt": "Our Playwright suite in evals/test-smells/files/e2e/checkout.spec.ts is flaky in CI. Can you review it?",
       "expected_output": "A review that identifies the tests as E2E, applies the E2E guidance from references/test-levels.md, and leaves the guest scenario alone.",
-      "files": ["evals/test-smells/files/e2e/checkout.spec.ts"],
+      "files": [
+        "evals/test-smells/files/e2e/checkout.spec.ts"
+      ],
       "expectations": [
         "Identifies the file as E2E/UI tests",
         "Flags page.waitForTimeout as Sleepy Test and suggests web-first assertions or condition waits",
@@ -58,7 +67,9 @@
       "id": 4,
       "prompt": "Write pytest tests for evals/test-smells/files/python/discount.py.",
       "expected_output": "A smell-free pytest file covering loyalty tiers, validation errors, the birthday bonus, AuditLog and RateRefresher, with no smell report.",
-      "files": ["evals/test-smells/files/python/discount.py"],
+      "files": [
+        "evals/test-smells/files/python/discount.py"
+      ],
       "expectations": [
         "Uses @pytest.mark.parametrize for the loyalty tiers instead of loops or copy-pasted tests",
         "Uses pytest.raises for both ValueError paths",
@@ -69,6 +80,40 @@
         "Contains no print statements and no if/for in test bodies",
         "Does not produce a smell report, since the user did not ask for one",
         "The written tests pass when run with pytest"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "test_audit_records_second_entry in evals/test-smells/files/python/test_discount.py fails randomly on CI. Find out why.",
+      "expected_output": "A flaky-test diagnosis that reproduces the failure by running the test alone or in a different order, and traces it to the shared module-level AuditLog.",
+      "files": [
+        "evals/test-smells/files/python/discount.py",
+        "evals/test-smells/files/python/test_discount.py"
+      ],
+      "expectations": [
+        "Runs the test before concluding (alone, in random or reversed order, or repeatedly)",
+        "Reports that the test fails when run alone, as evidence",
+        "Identifies the module-level AUDIT as shared mutable state and names Order-Dependent Tests",
+        "Recommends a fresh AuditLog per test (fixture or local variable)",
+        "Does not recommend retries or reruns as the fix"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Fix the test smells in evals/test-smells/files/python/test_discount.py.",
+      "expected_output": "Fixed tests that pass, with each changed test shown to fail against a temporary break in discount.py, and discount.py unchanged at the end.",
+      "files": [
+        "evals/test-smells/files/python/discount.py",
+        "evals/test-smells/files/python/test_discount.py"
+      ],
+      "expectations": [
+        "The fixed tests pass when run with pytest",
+        "For changed tests, temporarily breaks discount.py and confirms the tests fail",
+        "Reverts the temporary breaks: discount.py is unchanged at the end",
+        "Names in the summary which break each changed test caught",
+        "Replaces time.sleep with refresher.join()",
+        "Replaces the module-level AUDIT with per-test AuditLog instances",
+        "Strengthens test_discount_for_new_customer to assert a specific value"
       ]
     }
   ]

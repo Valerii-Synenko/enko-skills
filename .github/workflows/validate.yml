@@ -1,0 +1,25 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate skills, manifests, links and evals
+        run: python scripts/validate_skills.py
+
+      - name: Eval fixtures still run
+        working-directory: evals/test-smells/files/python
+        run: |
+          pip install pytest
+          python -m pytest -q -p no:cacheprovider

@@ -7,14 +7,15 @@ description: Detect and avoid test smells (anti-patterns in test code) such as A
 
 A test smell is a pattern in test code that makes tests harder to understand, slower, flaky, or less able to catch bugs. Smells are signals, not hard rules: always weigh the context before reporting or "fixing" one.
 
-This skill has two modes:
+This skill has three modes:
 
 - **Review mode** — the user asks to review, audit or improve existing tests. Find smells, explain them, propose fixes.
+- **Flaky-test mode** — the user reports a test as flaky, intermittent or failing only on CI. Reproduce and diagnose before judging from code.
 - **Writing mode** — you are writing or changing tests. Apply the catalog silently while writing; do not produce a smell report unless asked.
 
 ## Catalog
 
-Detailed definitions, detection signals, before/after examples and legitimate exceptions for every smell are in [references/catalog.md](references/catalog.md). Read the relevant entries before reporting a smell you are not certain about. Framework-specific signals (pytest, unittest, JUnit, Jest/Vitest, Go, Rust) are in [references/frameworks.md](references/frameworks.md). How verdicts change between unit, integration, API and E2E tests, plus smells specific to each level, is in [references/test-levels.md](references/test-levels.md).
+Detailed definitions, detection signals, before/after examples and legitimate exceptions for every smell are in [references/catalog.md](references/catalog.md). Read the relevant entries before reporting a smell you are not certain about. Framework-specific signals (pytest, unittest, JUnit, Jest/Vitest, Go, Rust, Playwright, Cypress, Selenium) are in [references/frameworks.md](references/frameworks.md). How verdicts change between unit, integration, API and E2E tests, plus smells specific to each level, is in [references/test-levels.md](references/test-levels.md).
 
 Severity: **High** = the test can pass while the code is broken, or fails randomly. **Medium** = the test is hard to read, diagnose or maintain. **Low** = cosmetic or context-dependent.
 
@@ -24,6 +25,7 @@ Severity: **High** = the test can pass while the code is broken, or fails random
 |---|---|---|
 | Empty Test | Test body has no executable statements | Implement it or delete it |
 | Unknown Test | No assertion and no expected-exception check | Assert on the observable outcome |
+| Weak Assertion | Asserts only existence, truthiness, non-emptiness or type (`is not None`, `toBeTruthy`, `len > 0`) | Assert the specific expected value |
 | Redundant Assertion | Assertion that is always true/false (`assert x == x`, `assertTrue(true)`) | Assert against an independent expected value |
 | Conditional Test Logic | `if`/`switch`/loops/ternaries deciding what gets asserted | Split into separate tests or parametrize |
 | Exception Handling | `try/catch` in the test that swallows or manually checks exceptions | Use the framework's exception assertion |
@@ -71,7 +73,16 @@ Severity: **High** = the test can pass while the code is broken, or fails random
 4. **Check exceptions before reporting.** Each catalog entry lists cases where the pattern is legitimate (e.g. multiple assertions on one result object are fine; `sleep` in a test of a timeout may be intentional). Do not report those.
 5. **Self-check** every finding against the checklist below and drop the ones that fail.
 6. **Report** in the format below. Group repeated occurrences of the same smell instead of listing each one.
-7. **Fix only if asked.** If the user asked to fix, apply fixes one smell at a time, keep behavior coverage the same or better, and run the tests afterward.
+7. **Fix only if asked.** If the user asked to fix, follow "Fixing" below.
+
+### Fixing
+
+1. Apply fixes one smell at a time and keep behavior coverage the same or better.
+2. Run the tests; they must pass.
+3. **Prove each changed test still catches bugs.** Temporarily break the behavior it guards in the production code (flip a comparison, return a wrong constant, drop a call) and run the test: it must fail with a clear message. Then revert the break and confirm with `git diff` (or by re-reading the file) that production code is unchanged. If the test still passes with the bug in place, the fix weakened it; strengthen the assertion.
+4. In the summary, name the break each changed test caught ("`test_gold_rate` fails when `>=` becomes `>`").
+
+If you cannot run the tests, say so and skip steps 2–3 explicitly instead of claiming the fix is verified.
 
 ### Self-check before reporting
 
@@ -127,6 +138,16 @@ Match the report to the size of the scope.
 ```
 
 Omit empty severity sections. If no smells are found, say so plainly; do not invent findings.
+
+## Flaky-test mode
+
+When the user says a test is flaky, intermittent, "fails only on CI" or "passes locally", follow [references/flaky-tests.md](references/flaky-tests.md):
+
+1. **Reproduce** with repeated runs, the way CI runs the test.
+2. **Narrow the cause** with targeted experiments: alone vs. with the suite, random order, serial vs. parallel, frozen time and other timezones, fixed seeds, no network.
+3. **Report** the reproduction rate, the experiment that isolated the cause, the smell, and the fix.
+
+If you cannot run the tests, say so, list causes found in the code as hypotheses rather than conclusions, and give the user the commands that would confirm them. Do not recommend retries as the fix.
 
 ## Writing mode
 
